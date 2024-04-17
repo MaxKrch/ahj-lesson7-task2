@@ -4,6 +4,7 @@ stack: node 18.12.0  # окружение
 
 branches:
   only:
+    - main
     - master  # ветка git
 
 cache: node_modules  # кеширование
