@@ -1,6 +1,7 @@
 export default class State {
 	constructor() {
-		this.tempImages = [];
 		this.nextTempId = 0;
+		this.tempImages = [];
+		this.savedImages = [];
 	}
 }
