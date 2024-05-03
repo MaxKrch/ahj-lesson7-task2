@@ -1,6 +1,6 @@
 const createRequest = async (req) => {
-	// const baseUrl = 'https://ahj-lesson7-task2-backend-production.up.railway.app';
-	const baseUrl = 'http://192.168.1.104:7070/';
+	const baseUrl = 'https://ahj-lesson7-task2-backend-production.up.railway.app';
+	// const baseUrl = 'http://192.168.1.104:7070/';
 	let fullUrl = `${baseUrl}?act=${req.act}`;
 	const optionsReq = {
 		method: req.method,
