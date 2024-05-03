@@ -2,8 +2,8 @@ import Render from './Render';
 import State from './State';
 import Image from './Image';
 
-const baseUrl = 'https://ahj-lesson7-task2-backend-production.up.railway.app';
-// const baseUrl = 'http://192.168.1.104:7070';
+// const baseUrl = 'https://ahj-lesson7-task2-backend-production.up.railway.app';
+const baseUrl = 'http://192.168.1.104:7070';
 
 import createRequest from './connection';
 
