@@ -260,7 +260,7 @@ export default class Render {
 		const activeSection = this.page[nameSection];
 
 		const listImgs = activeSection.querySelector(`ul.${section}-list-img`)
-		listImgs.append(imgItem);
+		listImgs.prepend(imgItem);
 
 		const imgEl = imgItem.querySelector(".img-img");
 	}

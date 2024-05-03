@@ -1,21 +1,21 @@
 const createRequest = async (req) => {
-	const baseUrl = 'https://ahj-lesson7-task2-backend-production.up.railway.app/';
-	// const baseUrl = 'http://localhost:7070/';
+	const baseUrl = 'https://ahj-lesson7-task2-backend-production.up.railway.app';
+	// const baseUrl = 'http://192.168.1.104:7070/';
 	let fullUrl = `${baseUrl}?act=${req.act}`;
-	
 	const optionsReq = {
-		method: req.method
+		method: req.method,
+		mode: 'cors'
 	}	
 	const reqData = new FormData();
 
 	if(req.act === 'saveImg') {
 		const imgBlob = await fetch(req.file.src);
+
 		const img = await imgBlob.blob();
-				
-		reqData.append('name', req.file.name);
-		reqData.append('file', img);
+
+		reqData.append('file', img, req.file.name);	
 	}
-	
+
 	if(req.act === 'upgImg') {
 		reqData.append('newName', req.file.newName);
 		reqData.append('id', req.file.id);
@@ -28,6 +28,7 @@ const createRequest = async (req) => {
 	optionsReq.body = reqData;
 
 	try {
+
 		const resp = await fetch(fullUrl, optionsReq)
 		const data = await resp.json();
 
@@ -35,12 +36,6 @@ const createRequest = async (req) => {
 	} catch(err) {
 		console.log(`Сервер недоступен`)
 	}
-// получить список 'query=getAllImg' 
-// сохранить новые изображения (массив объектов) 'query=saveImg'
-
-// удалить изображение 'query=delImg'
-// переместить 'query=sortImg'
-
 }
 
 export default createRequest

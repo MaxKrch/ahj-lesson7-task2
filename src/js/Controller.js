@@ -2,6 +2,9 @@ import Render from './Render';
 import State from './State';
 import Image from './Image';
 
+const baseUrl = 'https://ahj-lesson7-task2-backend-production.up.railway.app';
+// const baseUrl = 'http://192.168.1.104:7070';
+
 import createRequest from './connection';
 
 export default class AppController {
@@ -38,13 +41,13 @@ export default class AppController {
 		const savedImgs = this.loadSvdImgs();
 	}
 
-	onClickSaveTmpImg(event) {
+	async onClickSaveTmpImg(event) {
 		if(!this.state.tempImages) {
 			return;
 		}
-
-		for(let img of this.state.tempImages) {
-			this.saveImg(img);
+		const images = this.state.tempImages.slice()
+		for(let img of images) {
+			await this.saveImg(img);
 		}
 	}
 		
@@ -81,7 +84,6 @@ export default class AppController {
 		if (event.target.classList.contains("img-button__save")) {
 			const id = Number(event.target.dataset.id);
 			const img = this.state.tempImages.find(item => item.id === id);
-
 			this.saveImg(img);
 			return;
 		}
@@ -114,11 +116,10 @@ export default class AppController {
 		}
 	}
 
-	onClickSavedImgs(event) {
+	async onClickSavedImgs(event) {
 		if(event.target.classList.contains('img-button__remove')) {
 			const id = event.target.dataset.id;
-			const src = this.removeSavedImg(id);
-			
+			const src = await this.removeSavedImg(id);
 			if(src) {
 				this.clearBlobFromMemory(src)
 				return;
@@ -208,11 +209,11 @@ export default class AppController {
 		if(!img || !img.src) {
 			return;
 		}
-		
+	
 		const id = Number(img.id)
 
 		const req = {
-			method: 'POST',
+			method: 'PUT',
 			act: 'saveImg',
 			file: img,
 			pos: null
@@ -220,12 +221,12 @@ export default class AppController {
 	
 		try {
 			const response = await createRequest(req);
-		
-			if(response.success) {
 
+			if(response.success) {
 				const src = this.removeTempImg(id);
 				const img = response.data;
 				img.src = src;
+			
 				this.state.savedImages.push(img);
 				this.render.addImgToPage(img, 'saved');
 			}
@@ -288,17 +289,18 @@ export default class AppController {
 		
 		try {
 			const response = await createRequest(req);
-		
+	
 			if(response.success) {
 				const idSavedImg = response.data;
-			
+
 				const imgIndex = this.state.savedImages.findIndex(item => item.id === idSavedImg);
+				const src = this.state.savedImages[imgIndex].src;
 				this.state.savedImages.splice(imgIndex, 1);
-				
-				const imgLi = this.render.page.sectionSavedImg.querySelector(`li.img-item[data-id="${idSavedImg}"]`);
+			
+				const imgLi = this.render.page.sectionSavedImg.querySelector(`li.img-item[data-id="${idSavedImg}"]`);	
 				const countImg = this.state.savedImages.length;
 				this.render.removeImgNode(imgLi, 'saved', countImg);
-
+	
 				return src;
 			}
 		} catch (err) {
@@ -320,8 +322,10 @@ export default class AppController {
 
 			if(response.success) {
 				const images = response.data;
-				this.createBlobImgs(images)
-				
+				const newImgs = await this.createBlobImgs(images)
+				if(newImgs) {
+					this.updateSvdImgsList(newImgs)
+				}
 			} 
 		} catch(err) {
 			console.log(`Сервер недоступен`);
@@ -330,22 +334,45 @@ export default class AppController {
 	}
 
 	async createBlobImgs(images) {
-		for(let item of images) {
-				console.log(item)	
-
-			const img = await fetch(item.link)
-console.log(img)
-			const blob = await img.blob()
-			const src = URL.createObjectURL(blob)
-		
-
+		try {
+			for(let item of images) {
+				const img = await fetch(`${baseUrl}${item.link}`)
+	 			const blob = await img.blob();
+	 			const src = URL.createObjectURL(blob)
+	 		 	item.src = src;
+			}
+		 	return images;
+		} catch(err) {
+			return false;
 		}
 	}
 
 	clearBlobFromMemory(src) {
 		URL.revokeObjectURL(src);
 	}
+
+	updateSvdImgsList(newImgs) {
+		this.clearSvdImgsList();
+		this.addNewSvdImgsList(newImgs);
+	}
+
+	clearSvdImgsList() {
+		const count = this.state.savedImages.length;
+		
+		for(let i = count; i > 0; i -= 1) {
+			const currentImg = this.state.savedImages.shift();
+
+			this.clearBlobFromMemory(currentImg.src);
+			const imgLi = this.render.page.sectionSavedImg.querySelector(`li.img-item[data-id="${currentImg.id}"]`);	
+			const countImgs = i - 1;	
+			this.render.removeImgNode(imgLi, 'saved', countImgs);
+		}
+	}
+
+	addNewSvdImgsList(images) {
+		this.state.savedImages = images;
+		for(let image of this.state.savedImages) {
+			this.render.addImgToPage(image, 'saved');
+		}		
+	}
 }
-
-
-// переместить 'query=sortImg'
